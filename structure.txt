@@ -1,0 +1,63 @@
+约电V4
+│
+├── index.html
+│
+├── css
+│   ├── app.css              // 唯一CSS入口
+│   ├── tokens.css           // Design Token
+│   ├── base.css             // Reset + 基础样式
+│   ├── layout.css           // 布局
+│   │
+│   ├── components
+│   │   ├── button.css
+│   │   ├── card.css
+│   │   ├── navbar.css
+│   │   ├── tag.css
+│   │   ├── input.css
+│   │   ├── cell.css
+│   │   ├── textarea.css
+│   │   ├── switch.css
+│   │   ├── price-card.css
+│   │   ├── status-card.css
+│   │   ├── bottom-sheet.css
+│   │   └── toast.css
+│   │
+│   └── pages
+│       ├── home.css
+│       ├── energy.css
+│       └── mine.css
+│
+├── js
+│   ├── app.js
+│   ├── state.js
+│   ├── router.js
+│   ├── render.js
+│   ├── utils.js
+│   │
+│   ├── components
+│   │   ├── button.js
+│   │   ├── card.js
+│   │   ├── navbar.js
+│   │   ├── tag.js
+│   │   ├── input.js
+│   │   ├── cell.js
+│   │   ├── textarea.js
+│   │   ├── switch.js
+│   │   ├── price-card.js
+│   │   ├── status-card.js
+│   │   ├── bottom-sheet.js
+│   │   └── toast.js
+│   │
+│   ├── pages
+│   │   ├── home.js
+│   │   ├── energy.js
+│   │   └── mine.js
+│   │
+│   └── mock
+│       ├── user.js
+│       ├── order.js
+│       └── coupon.js
+│
+├── img
+├── icon
+└── README.md

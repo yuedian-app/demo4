@@ -1,0 +1,1520 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>约电 - 移动能源服务平台</title>
+    <style>
+        /* --- 基础全局样式与手机模型外壳 --- */
+        :root {
+            --primary-color: #00c853;
+            --bg-color: #f4f6f8;
+            --text-color: #333;
+            --gray-color: #999;
+            --accent-color: #ff9100;
+            --power-color: #00b0ff;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", Arial, sans-serif;
+        }
+
+        body {
+            background: #eef1f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 2px;
+        }
+
+        .phone-container {
+            width: 375px;
+            height: 812px;
+            background: var(--bg-color);
+            /* border: 8px solid #222; */
+            /* border-radius: 36px; */
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .app-header-bar {
+            background: #fff;
+            padding: 10px 15px 6px 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 14px;
+            font-weight: bold;
+            border-bottom: 1px solid #eee;
+            z-index: 999;
+        }
+
+        .header-left {
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            color: #333;
+            cursor: pointer;
+        }
+
+        .header-right {
+            font-size: 12px;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .msg-badge {
+            position: absolute;
+            top: -2px;
+            right: -2px;
+            width: 6px;
+            height: 6px;
+            background: red;
+            border-radius: 50%;
+        }
+
+        .app-content {
+            flex: 1;
+            overflow-y: auto;
+            padding-bottom: 65px;
+            position: relative;
+        }
+
+        .page {
+            display: none;
+            padding: 8px;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        .nav-bar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 54px;
+            background: #fff;
+            border-top: 1px solid #eee;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            z-index: 999;
+        }
+
+        .nav-item {
+            text-align: center;
+            color: var(--gray-color);
+            cursor: pointer;
+            font-size: 10px;
+            flex: 1;
+            padding: 4px 0;
+        }
+
+        .nav-item.active {
+            color: var(--primary-color);
+            font-weight: bold;
+        }
+
+        .nav-item-icon {
+            font-size: 20px;
+            margin-bottom: 1px;
+        }
+
+        /* --- 紧凑级卡片与表单设计 --- */
+        .card {
+            background: white;
+            border-radius: 8px;
+            padding: 10px 12px;
+            margin-bottom: 8px;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+        }
+
+        .card-title {
+            font-size: 12px;
+            font-weight: bold;
+            color: #111;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            border-left: 3px solid var(--primary-color);
+            padding-left: 6px;
+        }
+
+        .card-title.blue-title {
+            border-left-color: var(--power-color);
+        }
+
+        .btn-primary {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 6px;
+            width: 100%;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 4px;
+        }
+
+        .form-group {
+            margin-bottom: 8px;
+        }
+
+        .form-group:last-child {
+            margin-bottom: 0;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 11px;
+            font-weight: bold;
+            margin-bottom: 4px;
+            color: #555;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 7px 9px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 12px;
+            background: #fff;
+            color: #333;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 6px;
+        }
+
+        .form-row .form-group {
+            flex: 1;
+            margin-bottom: 0;
+        }
+
+        .radio-group {
+            display: flex;
+            gap: 4px;
+            flex-wrap: wrap;
+        }
+
+        .radio-tag {
+            padding: 5px 6px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 11px;
+            cursor: pointer;
+            background: #fff;
+            text-align: center;
+            flex: 1;
+            min-width: 65px;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .radio-tag.active {
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+            background: rgba(0, 200, 83, 0.04);
+            font-weight: bold;
+        }
+
+        .radio-tag.blue-active.active {
+            border-color: var(--power-color);
+            color: var(--power-color);
+            background: rgba(0, 176, 255, 0.04);
+        }
+
+        .sub-section {
+            display: none;
+            background: #f9f9f9;
+            padding: 8px;
+            border-radius: 6px;
+            margin-top: 6px;
+            border: 1px dashed #ddd;
+        }
+
+        .sub-section.active {
+            display: block;
+        }
+
+        /* 地图及上传组件 */
+        .map-pick-btn {
+            background: #f0f0f0;
+            border: 1px solid #ccc;
+            padding: 7px 10px;
+            border-radius: 5px;
+            font-size: 11px;
+            cursor: pointer;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 2px;
+        }
+
+        .upload-container {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 4px;
+        }
+
+        .upload-box {
+            width: 50px;
+            height: 50px;
+            border: 1px dashed #ccc;
+            border-radius: 6px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            font-size: 14px;
+            color: #999;
+            cursor: pointer;
+            background: #fff;
+        }
+
+        .upload-box span {
+            font-size: 8px;
+            color: #aaa;
+            transform: scale(0.9);
+        }
+
+        .price-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            color: #666;
+            margin-bottom: 4px;
+        }
+
+        .price-total {
+            border-top: 1px solid #eee;
+            margin-top: 6px;
+            padding-top: 6px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            font-weight: bold;
+            color: #222;
+        }
+
+        .price-num {
+            color: #ff5252;
+        }
+
+        /* ================= 首页相关样式 ================= */
+        .brand-container {
+            text-align: center;
+            padding: 6px 0 10px 0;
+        }
+
+        .brand-logo {
+            width: 100px;
+            /* height: auto; */
+            object-fit: contain;
+        }
+
+        .brand-subtitle {
+            font-size: 12px;
+            font-weight: bold;
+            color: #333;
+            margin-top: 4px;
+        }
+
+        .brand-slogan {
+            font-size: 10px;
+            color: #666;
+            font-style: italic;
+            margin-top: 1px;
+            letter-spacing: 0.3px;
+        }
+
+        .banner {
+            background: linear-gradient(135deg, #00c853, #00b0ff);
+            color: white;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            text-align: center;
+        }
+
+        .banner p {
+            font-size: 11px;
+            opacity: 0.95;
+            font-weight: 500;
+        }
+
+        .kingkong-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 6px;
+            margin-bottom: 8px;
+            text-align: center;
+        }
+
+        .kingkong-item {
+            background: white;
+            padding: 8px 4px;
+            border-radius: 8px;
+            cursor: pointer;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.02);
+        }
+
+        .kingkong-icon {
+            font-size: 18px;
+            margin-bottom: 2px;
+        }
+
+        .kingkong-text {
+            font-size: 10px;
+            color: #444;
+            font-weight: 500;
+        }
+
+        .biz-title {
+            font-size: 13px;
+            font-weight: bold;
+            color: #222;
+            margin: 4px 0 6px 4px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .biz-card {
+            display: flex;
+            align-items: center;
+            background: white;
+            padding: 10px 12px;
+            border-radius: 8px;
+            margin-bottom: 6px;
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+            position: relative;
+        }
+
+        .biz-card::after {
+            content: '→';
+            position: absolute;
+            right: 12px;
+            color: #ccc;
+            font-size: 12px;
+        }
+
+        .biz-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 18px;
+            background: rgba(0, 200, 83, 0.1);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 16px;
+            margin-right: 10px;
+        }
+
+        .biz-card.sec .biz-icon {
+            background: rgba(0, 176, 255, 0.1);
+        }
+
+        .biz-info h3 {
+            font-size: 13px;
+            color: #333;
+            margin-bottom: 1px;
+            display: flex;
+            align-items: center;
+        }
+
+        .biz-info p {
+            font-size: 11px;
+            color: var(--gray-color);
+            max-width: 240px;
+        }
+
+        .badge {
+            font-size: 9px;
+            padding: 1px 4px;
+            border-radius: 3px;
+            margin-left: 4px;
+        }
+
+        .badge-primary {
+            background: rgba(0, 200, 83, 0.15);
+            color: var(--primary-color);
+        }
+
+        .badge-secondary {
+            background: #f0f0f0;
+            color: #666;
+        }
+
+        /* 核心优势卡片 */
+        .advantage-section {
+            background: #fff;
+            border-radius: 8px;
+            padding: 10px 12px;
+        }
+
+        .adv-item {
+            display: flex;
+            gap: 10px;
+            margin-top: 8px;
+        }
+
+        .adv-item:first-child {
+            margin-top: 2px;
+        }
+
+        .adv-icon {
+            font-size: 15px;
+            background: #f5f5f5;
+            width: 28px;
+            height: 28px;
+            border-radius: 6px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        .adv-text h4 {
+            font-size: 12px;
+            color: #333;
+            margin-bottom: 1px;
+        }
+
+        .adv-text p {
+            font-size: 10px;
+            color: #777;
+            line-height: 1.3;
+        }
+
+        .tab-header {
+            display: flex;
+            background: white;
+            padding: 4px;
+            border-radius: 6px;
+            margin-bottom: 8px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            text-align: center;
+            padding: 8px;
+            font-size: 13px;
+            font-weight: bold;
+            color: #666;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        .tab-btn.active {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .tab-btn.active.blue-tab {
+            background: var(--power-color);
+        }
+
+        .time-hint {
+            font-size: 10px;
+            color: #666;
+            background: #f5f5f5;
+            padding: 4px 8px;
+            border-radius: 4px;
+            margin-top: 6px;
+            display: block;
+            line-height: 1.3;
+        }
+
+        /* ================= 订单卡片样式 ================= */
+        .order-card {
+            background: white;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 8px;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+            border-top: 3px solid var(--primary-color);
+        }
+
+        .order-card.power-type {
+            border-top-color: var(--power-color);
+        }
+
+        .order-hdr {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            color: #666;
+            margin-bottom: 6px;
+            padding-bottom: 4px;
+            border-bottom: 1px solid #f5f5f5;
+        }
+
+        .order-status {
+            font-weight: bold;
+            color: var(--accent-color);
+        }
+
+        .order-body h4 {
+            font-size: 13px;
+            color: #111;
+            margin-bottom: 4px;
+        }
+
+        .order-body p {
+            font-size: 11px;
+            color: #666;
+            margin-bottom: 2px;
+        }
+
+        .order-ftr {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 8px;
+            padding-top: 6px;
+            border-top: 1px solid #f5f5f5;
+        }
+
+        .order-price {
+            font-size: 13px;
+            font-weight: bold;
+            color: #ff5252;
+        }
+
+        .order-btn {
+            border: 1px solid #ddd;
+            padding: 4px 8px;
+            font-size: 11px;
+            border-radius: 4px;
+            background: white;
+            cursor: pointer;
+        }
+
+        /* ================= 我的页面新增样式 ================= */
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 6px 4px;
+            margin-bottom: 10px;
+        }
+
+        .avatar {
+            width: 48px;
+            height: 48px;
+            background: #ddd;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+        }
+
+        .user-meta h3 {
+            font-size: 15px;
+            margin-bottom: 2px;
+        }
+
+        .user-meta p {
+            font-size: 11px;
+            color: var(--gray-color);
+        }
+
+        /* 能源服务师独立横幅 */
+        .driver-banner {
+            background: linear-gradient(135deg, #e8f5e9, #c8e6c9);
+            border: 1px solid #a5d6a7;
+            border-radius: 8px;
+            padding: 10px 12px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .driver-banner-left h4 {
+            font-size: 12px;
+            color: #1b5e20;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .driver-banner-left p {
+            font-size: 10px;
+            color: #43a047;
+            margin-top: 1px;
+        }
+
+        .driver-banner-right {
+            background: var(--primary-color);
+            color: #fff;
+            font-size: 10px;
+            font-weight: bold;
+            padding: 4px 8px;
+            border-radius: 20px;
+        }
+
+        .menu-list {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.03);
+        }
+
+        .menu-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            border-bottom: 1px solid #f5f5f5;
+            cursor: pointer;
+            font-size: 13px;
+            color: #333;
+        }
+
+        .menu-item:last-child {
+            border-bottom: none;
+        }
+
+        .menu-item-left {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .menu-item-right {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 11px;
+            color: var(--gray-color);
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="phone-container">
+
+        <!-- 页眉 -->
+        <div class="app-header-bar">
+            <div class="header-left"><span>📍</span><span id="current-city">深圳市</span><span>▼</span></div>
+            <div style="font-size: 14px;" id="header-title">约电</div>
+            <div class="header-right" onclick="alert('暂无新消息')"><span>🔔</span>
+                <div class="msg-badge"></div>
+            </div>
+        </div>
+
+        <!-- 页面中间内容 -->
+        <div class="app-content">
+
+            <!-- 功能一：首页 -->
+            <div id="page-home" class="page active">
+                <!-- logo及副标题 -->
+                <div class="brand-container">
+                    <img src="img/logo.webp" alt="约电" class="brand-logo">
+                    <div class="brand-subtitle">移动能源服务平台</div>
+                    <div class="brand-slogan">哪里需要电，约电就到哪里！</div>
+                </div>
+                <div class="banner">
+                    <p>⚡ 拥有自产电源 · 控制源头成本 · 享受超低电价</p>
+                </div>
+
+                <!-- 核心用电服务 -->
+                <div class="biz-title">核心用电服务</div>
+                <div class="biz-card" onclick="switchTabService('ev')">
+                    <div class="biz-icon">🚗</div>
+                    <div class="biz-info">
+                        <h3>车辆补能救援</h3>
+                        <p>应急补能救援、常规上门补电，移动补能车火速抵达！</p>
+                    </div>
+                </div>
+                <div class="biz-card sec" onclick="switchTabService('power')">
+                    <div class="biz-icon">⛺</div>
+                    <div class="biz-info">
+                        <h3>场景化临时用电 </h3>
+                        <p>展会/活动/演出/露营/小型工地，中小功率轻量敏捷上门供电</p>
+                    </div>
+                </div>
+
+                <!-- 常用服务 -->
+                <div class="biz-title" style="margin-top: 10px;">常用服务</div>
+                <div class="kingkong-grid">
+                    <div class="kingkong-item" onclick="switchTabService('ev')">
+                        <div class="kingkong-icon">🚗</div>
+                        <div class="kingkong-text">车辆补能</div>
+                    </div>
+                    <div class="kingkong-item" onclick="switchTabService('power')">
+                        <div class="kingkong-icon">⛺</div>
+                        <div class="kingkong-text">场景供电</div>
+                    </div>
+                    <div class="kingkong-item" onclick="switchPage('page-orders')">
+                        <div class="kingkong-icon">📋</div>
+                        <div class="kingkong-text">我的订单</div>
+                    </div>
+                    <div class="kingkong-item" onclick="alert('您当前拥有自发电专属优惠券 3 张')">
+                        <div class="kingkong-icon">🎟️</div>
+                        <div class="kingkong-text">优惠券</div>
+                    </div>
+                </div>
+
+                <!-- 品牌营销 -->
+                <div class="biz-title" style="margin-top: 10px;">为什么选择约电</div>
+                <div class="advantage-section">
+                    <div class="adv-item">
+                        <div class="adv-icon">💰</div>
+                        <div class="adv-text">
+                            <h4>自产电源 · 价格优势</h4>
+                            <p>公司拥有独立自产电源，从源头掌控供电成本，将红利全额让渡给用户，价格低至同行60%。</p>
+                        </div>
+                    </div>
+                    <div class="adv-item">
+                        <div class="adv-icon">⚡</div>
+                        <div class="adv-text">
+                            <h4>网格指派 · 闪电响应</h4>
+                            <p>移动电源车在全城主要商圈、路段网格化巡逻驻守，下单即触发最近网格响应，最快25分钟触达。</p>
+                        </div>
+                    </div>
+                    <div class="adv-item">
+                        <div class="adv-icon">👌</div>
+                        <div class="adv-text">
+                            <h4>轻量便捷 · 实用至极</h4>
+                            <p>针对散户及小微商家贴身设计，摒弃大型工业用电复杂门槛，几秒钟即可完成移动端轻量预约。</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 功能二：补能 -->
+            <div id="page-charging" class="page">
+                <div class="tab-header">
+                    <div class="tab-btn active" id="tab-btn-ev" onclick="switchTabService('ev')">🚗 车辆补能</div>
+                    <div class="tab-btn" id="tab-btn-power" onclick="switchTabService('power')">⛺ 场景用电</div>
+                </div>
+
+                <!-- 功能二：补能 -- 1 - 车辆补能 -->
+                <div id="form-ev-wrapper">
+                    <!-- 功能二：补能 -- 1 - 车辆补能 - 1 - 服务场景选择 -->
+                    <div class="card">
+                        <div class="card-title">服务场景选择</div>
+                        <div class="radio-group">
+                            <div class="radio-tag active" id="sc-ev-em" onclick="setEvScene('emergency')">🚨 应急补能救援
+                            </div>
+                            <div class="radio-tag" id="sc-ev-ro" onclick="setEvScene('routine')">📅 常规上门补电</div>
+                        </div>
+                    </div>
+                    <!-- 功能二：补能 -- 1 - 车辆补能 - 2 - 车辆与电量需求 -->
+                    <div class="card">
+                        <div class="card-title">车辆与电量需求</div>
+                        <div class="radio-group" style="margin-bottom:8px;">
+                            <div class="radio-tag active" id="ct-small" onclick="setEvCarType('small')">🚗 小型车(≤2t)
+                            </div>
+                            <div class="radio-tag" id="ct-medium" onclick="setEvCarType('medium')">🚚 中型车(2-5t)</div>
+                            <div class="radio-tag" id="ct-large" onclick="setEvCarType('large')">🚛 大型车(≥5t)</div>
+                        </div>
+                        <div class="form-group">
+                            <label>补能电量需求 (度)</label>
+                            <input type="number" id="ev-power-input" class="form-control" placeholder="5"
+                                oninput="handleEvPowerChange(this)">
+                            <span id="ev-power-tip"
+                                style="font-size:10px; color:var(--gray-color); margin-top:2px; display:block;">推荐区间：1-8度</span>
+                        </div>
+                    </div>
+                    <!-- 功能二：补能 -- 1 - 车辆补能 - 3 - 车辆基础信息 -->
+                    <div class="card">
+                        <div class="card-title">车辆基础信息</div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>车牌号码</label>
+                                <input type="text" class="form-control" id="ev-plate-input" value="粤B·88888F"
+                                    placeholder="请输入车牌号">
+                            </div>
+                            <div class="form-group">
+                                <label>车辆剩余电量/续航</label>
+                                <input type="text" class="form-control" value="5% / 15公里" placeholder="如: 15% 或 30km">
+                            </div>
+                        </div>
+                    </div>
+                    <!-- 功能二：补能 -- 1 - 车辆补能 - 4 - 服务时间需求 -->
+                    <div class="card">
+                        <div class="card-title">服务时间需求</div>
+                        <div class="radio-group">
+                            <div class="radio-tag active" id="time-ev-now" onclick="setEvTimeType('now')">⚡ 立即上门</div>
+                            <div class="radio-tag" id="time-ev-book" onclick="setEvTimeType('book')">📅 预约时间</div>
+                        </div>
+                        <div id="ev-time-now-tip" class="time-hint">🚨 应急救援优先：移动车正网格化派单，预计最快25分钟赶到。</div>
+                        <div id="ev-time-book-section" class="sub-section">
+                            <div style="display:flex; gap:6px;">
+                                <input type="date" class="form-control" id="ev-book-date" value="2026-07-13">
+                                <select class="form-control" id="ev-book-period" onchange="calculateEvPrices()">
+                                    <option value="valley">凌晨 00:00-06:00 (谷时特惠)</option>
+                                    <option value="morning">上午 08:00-12:00</option>
+                                    <option value="afternoon">下午 14:00-18:00</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- 功能二：补能 -- 1 - 车辆补能 - 5 - 联系人信息 -->
+                    <div class="card">
+                        <div class="card-title">联系人信息</div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>联系电话</label>
+                                <input type="text" class="form-control" value="138****8888" placeholder="接听电话">
+                            </div>
+                            <div class="form-group">
+                                <label>紧急备用电话 (选填)</label>
+                                <input type="text" class="form-control" placeholder="代下单/备用手机">
+                            </div>
+                        </div>
+                    </div>
+                    <!-- 功能二：补能 -- 1 - 车辆补能 - 6 - 停车/服务地点 -->
+                    <div class="card">
+                        <div class="card-title">停车/服务地点</div>
+                        <div class="radio-group" style="margin-bottom:8px;">
+                            <div class="radio-tag active" id="lt-building" onclick="setLocType('building')">🏢 大厦园区
+                            </div>
+                            <div class="radio-tag" id="lt-road" onclick="setLocType('road')">🛣️ 市政道路</div>
+                            <div class="radio-tag" id="lt-highway" onclick="setLocType('highway')">🏁 高速路段</div>
+                            <div class="radio-tag" id="lt-other" onclick="setLocType('other')">📍 其他场地</div>
+                        </div>
+                        <div class="form-group" style="margin-bottom:6px;">
+                            <div style="display:flex; gap:4px;">
+                                <input type="text" id="ev-address-input" class="form-control" value="福田区英龙商务中心"
+                                    placeholder="请输入/选择详细地址">
+                                <button class="map-pick-btn" onclick="alert('地图坐标拾取成功！')">🗺️ 地图拾取</button>
+                            </div>
+                        </div>
+                        <div id="loc-building-sec" class="sub-section active" style="margin-top:0;">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>车库位置</label>
+                                    <select class="form-control">
+                                        <option>地下车库</option>
+                                        <option>地面停放</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>楼层/车位号</label>
+                                    <input type="text" class="form-control" value="负2层 B102" placeholder="如：负2层 B102">
+                                </div>
+                            </div>
+                        </div>
+                        <div id="loc-road-sec" class="sub-section" style="margin-top:0;">
+                            <div class="form-row">
+                                <div class="form-group"><label>行驶方向</label><input type="text" class="form-control"
+                                        placeholder="如：由东向西"></div>
+                                <div class="form-group"><label>路边具体位置</label><input type="text" class="form-control"
+                                        placeholder="如：公交站旁/路口北"></div>
+                            </div>
+                        </div>
+                        <div id="loc-highway-sec" class="sub-section" style="margin-top:0;">
+                            <div class="form-row">
+                                <div class="form-group"><label>高速名称/桩号</label><input type="text" class="form-control"
+                                        placeholder="如:G4京港澳 K123桩"></div>
+                                <div class="form-group"><label>具体说明</label><input type="text" class="form-control"
+                                        placeholder="如:服务区内/应急车道"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- 功能二：补能 -- 1 - 车辆补能 - 7 - 仪表盘图及环境图上传 -->
+                    <div class="card">
+                        <div class="form-row">
+                            <div class="form-group" style="flex: 0 0 120px;">
+                                <label>仪表盘图及环境图上传</label>
+                                <div class="upload-container">
+                                    <div class="upload-box" onclick="alert('调起系统相机...')">📷<span>仪表盘照</span></div>
+                                    <div class="upload-box" onclick="alert('调起系统相册...')">➕<span>环境图</span></div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>特殊需求备注 (选填)</label>
+                                <textarea class="form-control" style="height: 50px; resize: none; font-size:11px;"
+                                    placeholder="车辆特殊停放限制、无车位需临时挪车等配合说明..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- 功能二：补能 -- 1 - 车辆补能 - 8 - 计费 -->
+                    <div class="card" style="background:#fafafa; border:1px solid #eee;">
+                        <div
+                            style="font-size:11px; font-weight:bold; margin-bottom:6px; display:flex; justify-content:between;">
+                            <span>费用明细展示</span>
+                            <span
+                                style="color:var(--primary-color); font-weight:normal; margin-left:auto; cursor:pointer;"
+                                onclick="alert('已自动勾选自发低谷电专属券')">🎟️ 优惠券已选(1张)▼</span>
+                        </div>
+                        <div class="price-row"><span>基础电价</span><span id="p-ev-base">￥198.00</span></div>
+                        <div class="price-row"><span>动态距离及上门服务费</span><span id="p-ev-service">￥45.00</span></div>
+                        <div class="price-row" style="color:var(--primary-color);"><span>⚡ 自产电源专属券抵扣</span><span
+                                id="p-ev-coupon">-￥20.00</span></div>
+                        <div class="price-total"><span>实付金额</span><span class="price-num" id="p-ev-total">￥223.00</span>
+                        </div>
+                    </div>
+                    <!-- 功能二：补能 -- 1 - 车辆补能 - 9 - 提交约电救援订单 -->
+                    <button class="btn-primary" style="margin-bottom:15px;" onclick="submitEvOrder()">一键提交 ·
+                        约电救援</button>
+                </div>
+
+                <!-- 功能二：补能 -- 2 - 场景用电 -->
+                <div id="form-power-wrapper" style="display:none;">
+                    <!-- 功能二：补能 -- 2 - 场景用电 - 1 - 用电场景分类 -->
+                    <div class="card">
+                        <div class="card-title blue-title">用电场景分类 (轻量高频)</div>
+                        <div class="radio-group" style="margin-bottom:6px;">
+                            <div class="radio-tag blue-active active" id="ps-leisure"
+                                onclick="setPowerScene('leisure')">⛺ 户外休闲</div>
+                            <div class="radio-tag blue-active" id="ps-business" onclick="setPowerScene('business')">🏪
+                                商业活动</div>
+                            <div class="radio-tag blue-active" id="ps-project" onclick="setPowerScene('project')">🛠️
+                                工程施工</div>
+                            <div class="radio-tag blue-active" id="ps-other" onclick="setPowerScene('other')">➕ 其他场景
+                            </div>
+                        </div>
+                        <div id="pw-scene-other-input" class="sub-section">
+                            <input type="text" id="pw-scene-custom-val" class="form-control" placeholder="请输入自定义用电场景">
+                        </div>
+                    </div>
+                    <!-- 功能二：补能 -- 2 - 场景用电 - 2 - 用电核心参数 -->
+                    <div class="card">
+                        <div class="card-title blue-title">用电核心参数</div>
+                        <div class="form-group">
+                            <label>用电设备及用途</label>
+                            <input type="text" id="pw-device-use" class="form-control" value="户外露营灯、音响、电烧烤架"
+                                placeholder="如: 音响、冷藏冰箱、LED户外灯光">
+                        </div>
+                        <div class="form-group">
+                            <label>预估用电功率区间</label>
+                            <div class="radio-group" style="margin-bottom:4px;">
+                                <div class="radio-tag blue-active active" id="pr-small"
+                                    onclick="setPowerRange('small')">0-3KW(小)</div>
+                                <div class="radio-tag blue-active" id="pr-medium" onclick="setPowerRange('medium')">
+                                    3-10KW(中)</div>
+                                <div class="radio-tag blue-active" id="pr-large" onclick="setPowerRange('large')">
+                                    10KW+(大)</div>
+                                <div class="radio-tag blue-active" id="pr-custom" onclick="setPowerRange('custom')">✏️
+                                    自定义</div>
+                            </div>
+                            <div id="pw-power-custom-input" class="sub-section" style="margin-bottom:4px;">
+                                <input type="number" id="pw-power-custom-val" class="form-control"
+                                    placeholder="请输入具体功率数值 (KW)" oninput="calculatePowerPrices()">
+                            </div>
+                            <span id="power-config-tip"
+                                style="font-size:10px; color:var(--power-color); line-height:1.2; display:block;">💡
+                                适配：露营、直播。配置：便携移动电源。</span>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>用电时长数量</label>
+                                <input type="number" class="form-control" id="pw-duration-num" value="4"
+                                    oninput="calculatePowerPrices()">
+                            </div>
+                            <div class="form-group">
+                                <label>时间单位</label>
+                                <select class="form-control" id="pw-duration-unit" onchange="calculatePowerPrices()">
+                                    <option value="hour">小时</option>
+                                    <option value="day">天</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- 功能二：补能 -- 2 - 场景用电 - 3 - 服务时间需求 -->
+                    <div class="card">
+                        <div class="card-title blue-title">服务时间需求</div>
+                        <div class="radio-group">
+                            <div class="radio-tag blue-active active" id="time-pw-now"
+                                onclick="setPowerTimeType('now')">⚡ 立即上门供电</div>
+                            <div class="radio-tag blue-active" id="time-pw-book" onclick="setPowerTimeType('book')">📅
+                                预约上门 (周期)</div>
+                        </div>
+                        <div id="pw-time-now-tip" class="time-hint">💡 敏捷响应：中小功率轻量移动供电设备正整备，最快30分钟内送达。</div>
+                        <div id="pw-time-book-section" class="sub-section">
+                            <div class="form-group" style="margin-bottom:6px;">
+                                <label>设备送达时间</label>
+                                <input type="datetime-local" class="form-control" id="pw-book-start"
+                                    value="2026-07-13T09:00" onchange="calculatePowerPrices()">
+                            </div>
+                            <div class="form-group" style="margin-bottom:0;">
+                                <label>设备撤场时间</label>
+                                <input type="datetime-local" class="form-control" id="pw-book-end"
+                                    value="2026-07-13T18:00" onchange="calculatePowerPrices()">
+                            </div>
+                        </div>
+                    </div>
+                    <!-- 功能二：补能 -- 2 - 场景用电 - 4 - 用电场地信息 -->
+                    <div class="card">
+                        <div class="card-title blue-title">用电场地信息</div>
+                        <div class="form-group">
+                            <label>场地详细地址</label>
+                            <div style="display:flex; gap:4px;">
+                                <input type="text" id="pw-address-input" class="form-control" value="深圳湾人才公园"
+                                    placeholder="请选择或输入详细供电地址">
+                                <button class="map-pick-btn" onclick="alert('供电坐标拾取成功！')">🗺️ 地图拾取</button>
+                            </div>
+                        </div>
+                        <div class="form-row" style="margin-bottom:6px;">
+                            <div class="form-group">
+                                <label>场地类型</label>
+                                <select class="form-control">
+                                    <option>露天场地</option>
+                                    <option>室内场地</option>
+                                    <option>半室外场地</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>场地通行条件 (选填)</label>
+                                <select class="form-control">
+                                    <option>车辆可直达</option>
+                                    <option>需人工搬运设备</option>
+                                    <option>有场地限行限制</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- 功能二：补能 -- 2 - 场景用电 - 5 - 联系人信息 -->
+                    <div class="card">
+                        <div class="card-title blue-title">联系人信息 (对接多人场景)</div>
+                        <div class="form-group">
+                            <label>联系人姓名</label>
+                            <input type="text" class="form-control" value="张经理" placeholder="请输入联系人姓名">
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group"><label>联系电话</label><input type="text" class="form-control"
+                                    value="138****8888"></div>
+                            <div class="form-group"><label>备用联系电话</label><input type="text" class="form-control"
+                                    placeholder="选填，现场副对接人"></div>
+                        </div>
+                    </div>
+                    <!-- 功能二：补能 -- 2 - 场景用电 - 6 - 场地实景 -->
+                    <div class="card">
+                        <div class="form-row">
+                            <div class="form-group" style="flex:0 0 70px;">
+                                <label>场地实景</label>
+                                <div class="upload-container">
+                                    <div class="upload-box" style="width:55px; height:55px;" onclick="alert('调起相机...')">
+                                        📷<span>传实景图</span></div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>特殊需求与个性备注 (选填)</label>
+                                <textarea class="form-control" id="pw-remark"
+                                    style="height: 55px; resize: none; font-size:11px;"
+                                    placeholder="需要夜间用电、多点位供电、或需要设备全程专人值守服务..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- 功能二：补能 -- 2 - 场景用电 - 7 - 计费 -->
+                    <div class="card" style="background:#fafafa; border:1px solid #eee;">
+                        <div
+                            style="font-size:11px; font-weight:bold; margin-bottom:6px; display:flex; justify-content:between;">
+                            <span>场景供电动态计价</span>
+                            <span
+                                style="color:var(--power-color); font-weight:normal; margin-left:auto; cursor:pointer;"
+                                onclick="alert('通用优惠券已自动叠加')">🎟️ 场景优惠券已减￥15▲</span>
+                        </div>
+                        <div class="price-row"><span>基础设备租赁费</span><span id="p-pw-base">￥80.00</span></div>
+                        <div class="price-row"><span>上门配送及安装时长服务费</span><span id="p-pw-duration">￥40.00</span></div>
+                        <div class="price-row" style="color:var(--power-color);"><span>⚡
+                                自发清洁能源让利普及特惠</span><span>-￥15.00</span></div>
+                        <div class="price-total"><span>实付金额</span><span class="price-num" id="p-pw-total">￥105.00</span>
+                        </div>
+                    </div>
+                    <!-- 功能二：补能 -- 2 - 场景用电 - 8 - 提交预约供电订单 -->
+                    <button class="btn-primary" style="margin-bottom:15px; background-color:var(--power-color);"
+                        onclick="submitPowerOrder()">一键提交 · 预约供电</button>
+                </div>
+            </div>
+
+            <!-- 功能三：订单 -->
+            <div id="page-orders" class="page">
+                <div id="order-list-container">
+                    <div id="order-empty-placeholder"
+                        style="text-align: center; color: var(--gray-color); padding-top: 100px;">
+                        <div style="font-size: 32px; margin-bottom: 8px;">📋</div>
+                        <p>暂无进行中的订单</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 功能四：我的 -->
+            <div id="page-my" class="page">
+                <!-- 功能四：我的 - 1 - 车主图片、昵称及电话 -->
+                <div class="user-profile">
+                    <div class="avatar">👤</div>
+                    <div class="user-meta">
+                        <h3>约电用户_8888</h3>
+                        <p>手机号：138****8888</p>
+                    </div>
+                </div>
+                <!-- 功能四：我的 - 2 - 我的功能清单-->
+                <div class="menu-list">
+                    <div class="menu-item" onclick="alert('当前账户余额：￥0.00')">
+                        <div class="menu-item-left"><span>💳</span>我的钱包</div>
+                        <div class="menu-item-right">▶</div>
+                    </div>
+                    <div class="menu-item" onclick="alert('已绑定默认车牌：粤B·88888F')">
+                        <div class="menu-item-left"><span>🚗</span>我的车辆</div>
+                        <div class="menu-item-right"><span style="color:#666; margin-right:4px;">粤B·88888F</span>▶</div>
+                    </div>
+                    <div class="menu-item" onclick="alert('您当前拥有自发低谷电特惠专属券 3 张')">
+                        <div class="menu-item-left"><span>🎟️</span>优惠券</div>
+                        <div class="menu-item-right"><span
+                                style="color:var(--primary-color); font-weight:bold; margin-right:4px;">3张可用</span>▶
+                        </div>
+                    </div>
+                    <div class="menu-item" onclick="alert('常用地址管理：支持配置家庭、常用大厦、常去露营点。')">
+                        <div class="menu-item-left"><span>📍</span>常用地址</div>
+                        <div class="menu-item-right">▶</div>
+                    </div>
+                </div>
+                <!-- 功能四：我的 - 3 - 加入约电能源服务师-->
+                <div class="driver-banner" onclick="alert('感谢关注！服务师招募通道正在整备中，敬请期待。')">
+                    <div class="driver-banner-left">
+                        <h4>🛠️ 成为约电能源服务师</h4>
+                        <p>加入网格化保供车队，空闲运力轻松变现</p>
+                    </div>
+                    <div class="driver-banner-right">立即加入</div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- 底部导航 -->
+        <div class="nav-bar">
+            <div class="nav-item active" onclick="switchPage('page-home')" id="nav-home">
+                <div class="nav-item-icon">🏠</div>
+                <div>首页</div>
+            </div>
+            <div class="nav-item" onclick="switchTabService('ev')" id="nav-charging">
+                <div class="nav-item-icon">⚡</div>
+                <div>补能</div>
+            </div>
+            <div class="nav-item" onclick="switchPage('page-orders')" id="nav-orders">
+                <div class="nav-item-icon">📋</div>
+                <div>订单</div>
+            </div>
+            <div class="nav-item" onclick="switchPage('page-my')" id="nav-my">
+                <div class="nav-item-icon">👤</div>
+                <div>我的</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- js -->
+    <script>
+        // ==================== 全局数据状态中心 ====================
+        let evState = { scene: 'emergency', carType: 'small', power: 5, timeType: 'now', locType: 'building' };
+        let pwState = { scene: 'leisure', range: 'small', timeType: 'now' };
+
+        let globalOrders = [];
+
+        const evCarConfig = {
+            small: { basePrice: 198, defPower: 5, min: 1, max: 8 },
+            medium: { basePrice: 238, defPower: 10, min: 3, max: 15 },
+            large: { basePrice: 408, defPower: 20, min: 10, max: 25 }
+        };
+
+        const pwPowerConfig = {
+            small: { basePrice: 80, tip: '💡 适配：露营、直播。配置：便携移动电源。', text: '0-3KW(小功率)' },
+            medium: { basePrice: 180, tip: '💡 适配：普通展会、小型活动、简易施工。配置：中型供电舱。', text: '3-10KW(中功率)' },
+            large: { basePrice: 380, tip: '💡 适配：大型市集、演出、工地集中用电。配置：自发电车。', text: '10KW+(大功率)' },
+            custom: { basePrice: 250, tip: '💡 自定义功率方案：后台将根据具体功率智能指派特种发电车。', text: '自定义功率' }
+        };
+
+        // ==================== 页面与导航控制中心 ====================
+        function switchPage(pageId) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.getElementById(pageId).classList.add('active');
+            document.querySelectorAll('.nav-bar .nav-item').forEach(item => item.classList.remove('active'));
+            const navMap = { 'page-home': 'nav-home', 'page-charging': 'nav-charging', 'page-orders': 'nav-orders', 'page-my': 'nav-my' };
+            if (navMap[pageId]) document.getElementById(navMap[pageId]).classList.add('active');
+
+            const titleMap = { 'page-home': '约电', 'page-charging': '补能供电', 'page-orders': '我的订单', 'page-my': '个人中心' };
+            document.getElementById('header-title').innerText = titleMap[pageId] || '约电';
+
+            if (pageId === 'page-orders') {
+                renderOrders();
+            }
+        }
+
+        function switchTabService(serviceType) {
+            switchPage('page-charging');
+            const btnEv = document.getElementById('tab-btn-ev');
+            const btnPower = document.getElementById('tab-btn-power');
+            btnEv.classList.remove('active', 'blue-tab');
+            btnPower.classList.remove('active', 'blue-tab');
+            document.getElementById('form-ev-wrapper').style.display = 'none';
+            document.getElementById('form-power-wrapper').style.display = 'none';
+
+            if (serviceType === 'ev') {
+                btnEv.classList.add('active');
+                document.getElementById('form-ev-wrapper').style.display = 'block';
+                calculateEvPrices();
+            } else {
+                btnPower.classList.add('active', 'blue-tab');
+                document.getElementById('form-power-wrapper').style.display = 'block';
+                calculatePowerPrices();
+            }
+        }
+
+        // ==================== 车辆补能交互与联动逻辑 ====================
+        function setEvScene(sc) {
+            evState.scene = sc;
+            document.getElementById('sc-ev-em').classList.remove('active');
+            document.getElementById('sc-ev-ro').classList.remove('active');
+            if (sc === 'emergency') {
+                document.getElementById('sc-ev-em').classList.add('active');
+                setEvTimeType('now');
+            } else {
+                document.getElementById('sc-ev-ro').classList.add('active');
+                setEvTimeType('book');
+            }
+        }
+
+        function setEvTimeType(type) {
+            evState.timeType = type;
+            document.getElementById('time-ev-now').classList.remove('active');
+            document.getElementById('time-ev-book').classList.remove('active');
+            const nowTip = document.getElementById('ev-time-now-tip');
+            const bookSec = document.getElementById('ev-time-book-section');
+
+            if (type === 'now') {
+                document.getElementById('time-ev-now').classList.add('active');
+                nowTip.style.display = 'block';
+                bookSec.classList.remove('active');
+            } else {
+                document.getElementById('time-ev-book').classList.add('active');
+                nowTip.style.display = 'none';
+                bookSec.classList.add('active');
+            }
+            calculateEvPrices();
+        }
+
+        function setEvCarType(type) {
+            evState.carType = type;
+            document.getElementById('ct-small').classList.remove('active');
+            document.getElementById('ct-medium').classList.remove('active');
+            document.getElementById('ct-large').classList.remove('active');
+            document.getElementById('ct-' + type).classList.add('active');
+
+            const conf = evCarConfig[type];
+            evState.power = conf.defPower;
+            document.getElementById('ev-power-input').value = conf.defPower;
+            document.getElementById('ev-power-tip').innerText = `推荐区间：${conf.min}-${conf.max}度`;
+            calculateEvPrices();
+        }
+
+        function handleEvPowerChange(input) {
+            evState.power = parseFloat(input.value) || 0;
+            calculateEvPrices();
+        }
+
+        function setLocType(type) {
+            evState.locType = type;
+            document.getElementById('lt-building').classList.remove('active');
+            document.getElementById('lt-road').classList.remove('active');
+            document.getElementById('lt-highway').classList.remove('active');
+            document.getElementById('lt-other').classList.remove('active');
+            document.getElementById('lt-' + type).classList.add('active');
+
+            document.getElementById('loc-building-sec').classList.remove('active');
+            document.getElementById('loc-road-sec').classList.remove('active');
+            document.getElementById('loc-highway-sec').classList.remove('active');
+
+            if (type === 'building') document.getElementById('loc-building-sec').classList.add('active');
+            if (type === 'road') document.getElementById('loc-road-sec').classList.add('active');
+            if (type === 'highway') document.getElementById('loc-highway-sec').classList.add('active');
+        }
+
+        function calculateEvPrices() {
+            const conf = evCarConfig[evState.carType];
+            if (!conf) return 0;
+            let base = conf.basePrice;
+            let service = (evState.timeType === 'now') ? 45 : 20;
+            let coupon = 20;
+            if (evState.timeType === 'book' && document.getElementById('ev-book-period').value === 'valley') {
+                coupon = 35;
+            }
+            let total = base + service - coupon;
+            document.getElementById('p-ev-base').innerText = `￥${base}.00`;
+            document.getElementById('p-ev-service').innerText = `￥${service}.00`;
+            document.getElementById('p-ev-coupon').innerText = `-￥${coupon}.00`;
+            document.getElementById('p-ev-total').innerText = `￥${total}.00`;
+            return total;
+        }
+
+        function submitEvOrder() {
+            let plate = document.getElementById('ev-plate-input').value || '未知车牌';
+            let addr = document.getElementById('ev-address-input').value || '精确指定坐标位置';
+            let price = document.getElementById('p-ev-total').innerText;
+            let timeDesc = (evState.timeType === 'now') ? '⚡ 立即上门' : `📅 预约: ${document.getElementById('ev-book-date').value}`;
+            let sceneText = (evState.scene === 'emergency') ? '🚨 亏电紧急救援' : '📅 日常常规补电';
+
+            let newOrder = {
+                id: 'YD' + Math.floor(Math.random() * 899999 + 100000),
+                type: 'ev',
+                title: `车辆补能 - ${sceneText}`,
+                subTitle: `服务车辆：${plate} (${evState.power}度需求)`,
+                targetTime: timeDesc,
+                address: addr,
+                price: price,
+                status: '正在指派移动车...'
+            };
+
+            globalOrders.unshift(newOrder);
+            alert('🎉 约电救援成功！已进入网格指派矩阵。');
+            switchPage('page-orders');
+        }
+
+        // ==================== 场景化用电交互与计价逻辑 ====================
+        function setPowerScene(sc) {
+            pwState.scene = sc;
+            document.getElementById('ps-leisure').classList.remove('active');
+            document.getElementById('ps-business').classList.remove('active');
+            document.getElementById('ps-project').classList.remove('active');
+            document.getElementById('ps-other').classList.remove('active');
+            document.getElementById('ps-' + sc).classList.add('active');
+
+            const otherInput = document.getElementById('pw-scene-other-input');
+            if (sc === 'other') otherInput.classList.add('active');
+            else otherInput.classList.remove('active');
+        }
+
+        function setPowerTimeType(type) {
+            pwState.timeType = type;
+            document.getElementById('time-pw-now').classList.remove('active');
+            document.getElementById('time-pw-book').classList.remove('active');
+            const nowTip = document.getElementById('pw-time-now-tip');
+            const bookSec = document.getElementById('pw-time-book-section');
+
+            if (type === 'now') {
+                document.getElementById('time-pw-now').classList.add('active');
+                nowTip.style.display = 'block';
+                bookSec.classList.remove('active');
+            } else {
+                document.getElementById('time-pw-book').classList.add('active');
+                nowTip.style.display = 'none';
+                bookSec.classList.add('active');
+            }
+            calculatePowerPrices();
+        }
+
+        function setPowerRange(rg) {
+            pwState.range = rg;
+            document.getElementById('pr-small').classList.remove('active');
+            document.getElementById('pr-medium').classList.remove('active');
+            document.getElementById('pr-large').classList.remove('active');
+            document.getElementById('pr-custom').classList.remove('active');
+            document.getElementById('pr-' + rg).classList.add('active');
+
+            document.getElementById('power-config-tip').innerText = pwPowerConfig[rg].tip;
+
+            const customInput = document.getElementById('pw-power-custom-input');
+            if (rg === 'custom') customInput.classList.add('active');
+            else customInput.classList.remove('active');
+
+            calculatePowerPrices();
+        }
+
+        function calculatePowerPrices() {
+            let base = pwPowerConfig[pwState.range].basePrice;
+            let durationNum = parseFloat(document.getElementById('pw-duration-num').value) || 1;
+            let durationUnit = document.getElementById('pw-duration-unit').value;
+
+            let durationFactor = (durationUnit === 'day') ? 150 : 10;
+            let durationFee = Math.ceil(durationNum * durationFactor);
+
+            if (pwState.timeType === 'book') {
+                durationFee += 30;
+            }
+            let total = base + durationFee - 15;
+            document.getElementById('p-pw-base').innerText = `￥${base}.00`;
+            document.getElementById('p-pw-duration').innerText = `￥${durationFee}.00`;
+            document.getElementById('p-pw-total').innerText = `￥${total}.00`;
+            return total;
+        }
+
+        function submitPowerOrder() {
+            let addr = document.getElementById('pw-address-input').value || '指定临时活动点位';
+            let device = document.getElementById('pw-device-use').value || '中小功率临时设备';
+            let price = document.getElementById('p-pw-total').innerText;
+
+            let sceneMap = { leisure: '⛺ 户外休闲', business: '🏪 商业活动', project: '🛠️ 工程施工', other: '➕ 专属场景' };
+            let finalScene = (pwState.scene === 'other') ? ('⛺ ' + (document.getElementById('pw-scene-custom-val').value || '自定义用电')) : sceneMap[pwState.scene];
+
+            let timeDesc = (pwState.timeType === 'now') ? '⚡ 立即送达' : `📅 周期用电预约`;
+
+            let newOrder = {
+                id: 'YD' + Math.floor(Math.random() * 899999 + 100000),
+                type: 'power',
+                title: `场景供电 - ${finalScene}`,
+                subTitle: `用途设备：${device} (${pwPowerConfig[pwState.range].text})`,
+                targetTime: timeDesc,
+                address: addr,
+                price: price,
+                status: '技术团队整备设备中...'
+            };
+
+            globalOrders.unshift(newOrder);
+            alert('🎉 临时供电需求已提交！专业设备正在快速装车。');
+            switchPage('page-orders');
+        }
+
+        // ==================== 订单列表渲染引擎 ====================
+        function renderOrders() {
+            const container = document.getElementById('order-list-container');
+            if (globalOrders.length === 0) {
+                container.innerHTML = `
+                <div id="order-empty-placeholder" style="text-align: center; color: var(--gray-color); padding-top: 100px;">
+                    <div style="font-size: 32px; margin-bottom: 8px;">📋</div><p>暂无进行中的订单</p>
+                </div>`;
+                return;
+            }
+
+            let html = '';
+            globalOrders.forEach(o => {
+                let typeClass = (o.type === 'power') ? 'power-type' : '';
+                html += `
+                <div class="order-card ${typeClass}">
+                    <div class="order-hdr">
+                        <span>订单号：${o.id}</span>
+                        <span class="order-status">${o.status}</span>
+                    </div>
+                    <div class="order-body">
+                        <h4>${o.title}</h4>
+                        <p><strong>需求时间：</strong>${o.targetTime}</p>
+                        <p><strong>履约地址：</strong>${o.address}</p>
+                        <p style="color:#777; font-size:10px;">${o.subTitle}</p>
+                    </div>
+                    <div class="order-ftr">
+                        <div class="order-price">${o.price}</div>
+                        <button class="order-btn" onclick="alert('正在联系专属能效工程师...')">📞 联系司机</button>
+                    </div>
+                </div>
+            `;
+            });
+            container.innerHTML = html;
+        }
+    </script>
+
+</body>
+
+</html>
